@@ -8,9 +8,9 @@ use Doctrine\Common\Collections\Collection;
 use Odiseo\SyliusVendorPlugin\Entity\VendorInterface;
 use Odiseo\SyliusVendorPlugin\Entity\VendorTranslation;
 use Odiseo\SyliusVendorPlugin\Repository\VendorRepositoryInterface;
-use SitemapPlugin\Factory\SitemapUrlFactoryInterface;
+use SitemapPlugin\Factory\UrlFactoryInterface;
 use SitemapPlugin\Model\ChangeFrequency;
-use SitemapPlugin\Model\SitemapUrlInterface;
+use SitemapPlugin\Model\UrlInterface;
 use SitemapPlugin\Provider\UrlProviderInterface;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
@@ -27,7 +27,7 @@ final class VendorUrlProvider implements UrlProviderInterface
     /** @var RouterInterface */
     private $router;
 
-    /** @var SitemapUrlFactoryInterface */
+    /** @var UrlFactoryInterface */
     private $sitemapUrlFactory;
 
     /** @var LocaleContextInterface */
@@ -39,7 +39,7 @@ final class VendorUrlProvider implements UrlProviderInterface
     public function __construct(
         VendorRepositoryInterface $vendorRepository,
         RouterInterface $router,
-        SitemapUrlFactoryInterface $sitemapUrlFactory,
+        UrlFactoryInterface $sitemapUrlFactory,
         LocaleContextInterface $localeContext,
         ChannelContextInterface $channelContext
     ) {
@@ -61,11 +61,11 @@ final class VendorUrlProvider implements UrlProviderInterface
     /**
      * {@inheritdoc}
      */
-    public function generate(): iterable
+    public function generate(ChannelInterface $channel): iterable
     {
         $urls = [];
 
-        foreach ($this->getVendors() as $vendor) {
+        foreach ($this->getVendors($channel) as $vendor) {
             $urls[] = $this->createVendorUrl($vendor);
         }
 
@@ -97,11 +97,8 @@ final class VendorUrlProvider implements UrlProviderInterface
     /**
      * @return iterable
      */
-    private function getVendors(): iterable
+    private function getVendors(ChannelInterface $channel): iterable
     {
-        /** @var ChannelInterface $channel */
-        $channel = $this->channelContext->getChannel();
-
         return $this->vendorRepository->findByChannel($channel);
     }
 
@@ -120,9 +117,9 @@ final class VendorUrlProvider implements UrlProviderInterface
 
     /**
      * @param VendorInterface $vendor
-     * @return SitemapUrlInterface
+     * @return UrlInterface
      */
-    private function createVendorUrl(VendorInterface $vendor): SitemapUrlInterface
+    private function createVendorUrl(VendorInterface $vendor): UrlInterface
     {
         $vendorUrl = $this->sitemapUrlFactory->createNew();
 
